@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------
 # AUTHOR: Toni Liang    
 # FILENAME: decisionTrees
-# SPECIFICATION: This program reads data from a CVS file given by the professor that separates values into 
+# SPECIFICATION: 
+# This program reads data from a CVS file given by the professor that separates values into 
 # categories and gives a target label. Using python, the program can realize a tree structure that is close
 # to the decision tree we produced earlier in part A.
 # FOR: CS 4210- Assignment #1
@@ -24,7 +25,6 @@
 from sklearn import tree
 import matplotlib.pyplot as plt
 import csv
-
 
 db = []
 X = []
