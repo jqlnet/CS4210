@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------
 # AUTHOR: Toni Liang
-# FILENAME: Assignment 2: Decision_Tree part 2
+# FILENAME:Decision_Tree part 2
 # SPECIFICATION: This is the second assignment from machine learning 4210 where the objective of the program 
 # is to create a training model of the decision tree by using 3 cvs training files that contain data on contact lenses.
 # the program shall then train 10 iterations of each dataset and return the average accuracy of the data given.
@@ -13,6 +13,7 @@
 #Importing some Python libraries
 from sklearn import tree
 import pandas as pd
+
 
 # given predefined datasets 
 dataSets = ['contact_lens_training_1.csv', 'contact_lens_training_2.csv', 'contact_lens_training_3.csv']
@@ -74,7 +75,6 @@ for ds in dataSets:
        #Read the test data and add this data to dbTest
        #--> add your Python code here
        # no need to add it here, because i stated it at the top of the program.
-
 
        #the correct resets to 0 EACH iteration, but it is essentially the starting accuracy for each loop.
        correct = 0
