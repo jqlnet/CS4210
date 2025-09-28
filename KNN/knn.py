@@ -30,7 +30,9 @@ def encode_label(label):
         return 1
 
 #Loop your data to allow each instance to be your test set
-for i in db:
+for i in range(n): 
+# for i in db iterates directly over elements in the rows
+# for i in range(n) allows us to put an element i in each iteration and lets us remove them or use them as well.
 
     #Add the training features to the 20D array X removing the instance that will be used for testing in this iteration.
     #For instance, X = [[1, 2, 3, 4, 5, ..., 20]].
