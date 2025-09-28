@@ -64,7 +64,7 @@ print("Day,Outlook,Temperature,Humidity,Wind,PlayTennis,Confidence")
 #Use your test samples to make probabilistic predictions. For instance: clf.predict_proba([[3, 1, 2, 1]])[0]
 #--> add your Python code here
 
-#here we will convert each test sample feature again
+#here we will convert each test sample feature again, this part i am not too sure on but apparently we need it to make sure its correct and recognizable.
 for row in dbTest:
     x_test = [
         outlook_map[row[1]],
