@@ -63,6 +63,11 @@ for i in range(n):
     #--> add your Python code here
     class_predicted = clf.predict([testSample])[0]
 
+    #if any errors, we will keep count
+    if class_predicted != testLabel:
+        errors += 1
+
+
 #Compare the prediction with the true label of the test instance to start calculating the error rate.
 #--> add your Python code here
 error_rate = errors / n
