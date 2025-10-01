@@ -18,10 +18,6 @@ import pandas as pd
 # given predefined datasets 
 dataSets = ['contact_lens_training_1.csv', 'contact_lens_training_2.csv', 'contact_lens_training_3.csv']
 
-
-# this is the LIST of accuracies after the 10 iterations we will use later
-accuracies = []
-
 #Reading the test data in a csv file using pandas
 dbTest = []
 df_test = pd.read_csv('contact_lens_test.csv')
@@ -64,6 +60,8 @@ for ds in dataSets:
     #--> add your Python code here
         Y.append(class_map[row['Recommended Lenses']])
 
+    # this is the LIST of accuracies after the 10 iterations we will use later
+    accuracies = []
     #Loop your training and test tasks 10 times here
     for i in range (10):
 
@@ -97,8 +95,9 @@ for ds in dataSets:
             true_label = class_map[data[4]]
             if class_predicted == true_label:
                 correct += 1
-            accuracy = correct / len(dbTest) # the total
-            accuracies.append(accuracy) # appends to the accuracy list on top of the program
+
+    accuracy = correct / len(dbTest) # the total
+    accuracies.append(accuracy) # appends to the accuracy list on top of the program
 
     #Find the average of this model during the 10 runs (training and test set)
     #--> add your Python code here, to get the avg accuracy, we divide the sum/total of the accuracies by however many runs or the length of the accuracies list
