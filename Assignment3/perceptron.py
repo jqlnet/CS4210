@@ -51,7 +51,7 @@ for learning_rate in n: #iterates over n
                 clf = MLPClassifier(                     # use those hyperparameters: activation='logistic', learning_rate_init = learning rate,
                     activation='logistic',               # hidden_layer_sizes = number of neurons in the ith hidden layer - use 1 hidden layer with 25 neurons, 
                     learning_rate_init = learning_rate,  # shuffle = shuffle the training data, max_iter=1000
-                    hidden_layer_sizes = (25,),          
+                    hidden_layer_sizes = (25),          
                     shuffle = sValue,                    
                     max_iter = 1000
                 )
