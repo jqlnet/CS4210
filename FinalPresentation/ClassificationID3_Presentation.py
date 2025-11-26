@@ -1,11 +1,22 @@
 # ============================================================
-# ID3 DECISION TREE CLASSIFIER - PRICERUNNER AGGREGATE for Final Presentation 
+# ID3 DECISION TREE CLASSIFIER - PRICERUNNER DATASET
+# Supervised Classification: Product Category Prediction
+# ============================================================
+# Problem Statement:
+# - Goal: Classify products into categories using machine learning
+# - Input: Product Title (text) + Merchant ID (categorical)
+# - Target: Category Label (10 classes)
+# - Dataset: PriceRunner from UCI
 # ============================================================
 
 import pandas as pd
+import numpy as np
 from sklearn import tree
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.sparse import hstack
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -95,19 +106,16 @@ def get_user_input():
     
     # Feature selection
     print("\n[FEATURE SELECTION]")
-    print("  Suggested: Option 1 (all features)")
+    print("  Suggested: Option 1 (recommended)")
     print("  Available options:")
-    print("    1. All features (Product Title, Merchant ID, Cluster ID)")
-    print("    2. Core features only (Product Title, Cluster ID)")
-    print("    3. Custom selection")
+    print("    1. Product Title + Merchant ID")
+    print("    2. Product Title only")
     
     feature_choice = input("  Select option (or press Enter for 1): ").strip() or "1"
     if feature_choice == "1":
-        print("  -> Selected: All 3 features")
-    elif feature_choice == "2":
-        print("  -> Selected: Core features (2)")
+        print("  -> Selected: Product Title + Merchant ID")
     else:
-        print("  -> Selected: Default features")
+        print("  -> Selected: Product Title only")
     
     return {
         'train_size': train_size,
@@ -133,46 +141,63 @@ def load_and_prepare_data(config):
     # Data verification
     print("\nData Verification:")
     print(f"  - Missing values: {df.isnull().sum().sum()} total")
-    print(f"  - Columns: {df.columns.tolist()}")
     
-    # Encode categorical columns
-    df['Product Title'] = df['Product Title'].astype('category').cat.codes
-    df[' Cluster Label'] = df[' Cluster Label'].astype('category').cat.codes
-    df[' Category Label'] = df[' Category Label'].astype('category').cat.codes
+    # Extract text and categorical features
+    product_titles = df['Product Title'].astype(str)
+    merchant_ids = df[' Merchant ID']
+    y = df[' Category Label']
     
-    print("\n[OK] Categorical features encoded")
+    print(f"\n[OK] Data extracted:")
+    print(f"  - Product titles: {len(product_titles)} samples")
+    print(f"  - Merchant IDs: {len(merchant_ids)} unique values")
+    print(f"  - Categories: {len(y.unique())} classes")
     
-    # Select features based on user choice
+    # Encode target variable
+    le_target = LabelEncoder()
+    y_encoded = le_target.fit_transform(y)
+    
+    # Vectorize Product Title using CountVectorizer
+    print(f"\n[OK] Vectorizing Product Title text...")
+    vectorizer = CountVectorizer(max_features=100, lowercase=True, stop_words='english')
+    X_title = vectorizer.fit_transform(product_titles)
+    print(f"  - Generated {X_title.shape[1]} text features (word counts)")
+    
+    # Encode Merchant ID
+    le_merchant = LabelEncoder()
+    X_merchant = le_merchant.fit_transform(merchant_ids).reshape(-1, 1)
+    print(f"  - Merchant ID encoded: {X_merchant.shape[1]} feature")
+    
+    # Combine features based on choice
     if config['feature_choice'] == '1':
-        features = ['Product Title', ' Merchant ID', ' Cluster ID']
-        print("[OK] Using all 3 features (Product Title, Merchant ID, Cluster ID)")
-    elif config['feature_choice'] == '2':
-        features = ['Product Title', ' Cluster ID']
-        print("[OK] Using core features (Product Title, Cluster ID)")
+        # Combine Product Title + Merchant ID
+        X = hstack([X_title, X_merchant]).toarray()  # Convert to dense for Decision Tree
+        features_used = "Product Title + Merchant ID"
     else:
-        features = ['Product Title', ' Merchant ID', ' Cluster ID']
-        print("[OK] Using default features (all 3)")
+        # Product Title only
+        X = X_title.toarray()  # Convert to dense for Decision Tree
+        features_used = "Product Title"
     
-    target = ' Category Label'
+    print(f"\n[OK] Using {config['feature_choice']} feature(s): {features_used}")
+    print(f"  - Total features: {X.shape[1]}")
     
-    X = df[features]
-    y = df[target]
-    
-    return X, y, features, target, df
+    return X, y_encoded, features_used, le_target, df
 
-def display_data_summary(X, y, features):
+
+def display_data_summary(X, y, features_used):
     """Display summary statistics about the data"""
     print("\n" + "=" * 70)
     print("DATA SUMMARY")
     print("=" * 70)
-    print(f"\nFeatures used ({len(features)}):")
-    for i, feat in enumerate(features, 1):
-        print(f"  {i}. {feat}")
     
-    print(f"\nTarget variable: Category Label (10 classes)")
-    print(f"Total samples: {len(y):,}")
-    print(f"\nClass distribution:")
-    print(y.value_counts().sort_index())
+    print(f"\nDataset shape: {X.shape[0]:,} samples, {X.shape[1]} features")
+    print(f"\nFeatures used: {features_used}")
+    print(f"Target variable: Category Label")
+    
+    print("\nClass distribution:")
+    unique_classes, counts = np.unique(y, return_counts=True)
+    for class_label, count in zip(unique_classes, counts):
+        percentage = (count / len(y)) * 100
+        print(f"  Class {class_label}: {count:6,} samples ({percentage:5.2f}%)")
 
 def train_and_evaluate(X, y, config):
     """Train model and perform comprehensive evaluation"""
@@ -225,20 +250,6 @@ def train_and_evaluate(X, y, config):
     # Generate visualizations
     print("\n[OK] Generating visualizations...")
     
-    # Decision tree plot
-    plt.figure(figsize=(20, 12))
-    tree.plot_tree(clf, 
-                   feature_names=X.columns.tolist(),
-                   class_names=[f'Class {i}' for i in range(10)],
-                   filled=True, 
-                   rounded=True, 
-                   fontsize=8)
-    plt.title('ID3 Decision Tree Classifier', fontsize=16, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig('decision_tree_plot.png', dpi=300, bbox_inches='tight')
-    plt.close()
-    print("  [OK] decision_tree_plot.png saved")
-    
     # Confusion matrix plot
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(12, 10))
@@ -248,9 +259,9 @@ def train_and_evaluate(X, y, config):
     plt.xlabel('Predicted Label', fontsize=12)
     plt.ylabel('Actual Label', fontsize=12)
     plt.tight_layout()
-    plt.savefig('confusion_matrix_plot.png', dpi=300, bbox_inches='tight')
+    plt.savefig('confusion_matrix_id3.png', dpi=300, bbox_inches='tight')
     plt.close()
-    print("  [OK] confusion_matrix_plot.png saved")
+    print("  [OK] confusion_matrix_id3.png saved")
     
     return clf, X_train, X_test, y_train, y_test, y_pred, test_accuracy, cv_scores
 
@@ -324,10 +335,10 @@ def main():
         config = get_user_input()
         
         # Load and prepare data
-        X, y, features, target, df = load_and_prepare_data(config)
+        X, y, features_used, le_target, df = load_and_prepare_data(config)
         
         # Display data summary
-        display_data_summary(X, y, features)
+        display_data_summary(X, y, features_used)
         
         # Train and evaluate
         clf, X_train, X_test, y_train, y_test, y_pred, test_accuracy, cv_scores = train_and_evaluate(X, y, config)

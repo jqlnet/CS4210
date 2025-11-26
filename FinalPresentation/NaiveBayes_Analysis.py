@@ -1,9 +1,15 @@
 """
 Naive Bayes Classifier for PriceRunner Dataset
-Comparison with ID3 Decision Tree and Logistic Regression
+Supervised Classification: Product Category Prediction
+
+Problem Statement:
+- Goal: Classify products into categories using machine learning
+- Input: Product Title (text) + Merchant ID (categorical)
+- Target: Category Label (10 classes)
+- Dataset: PriceRunner from UCI
 
 Author: Data Analysis Tool
-Purpose: Demonstrate Naive Bayes performance on multi-class classification
+Purpose: Demonstrate Naive Bayes performance on text classification
 """
 
 import pandas as pd
@@ -11,9 +17,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.naive_bayes import CategoricalNB
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.pipeline import Pipeline
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -53,9 +61,8 @@ def get_user_input():
     print("\n[FEATURE SELECTION]")
     print("  Suggested: Option 1 (all features)")
     print("  Available options:")
-    print("    1. All features (Product Title, Merchant ID, Cluster ID)")
-    print("    2. Core features only (Product Title, Cluster ID)")
-    print("    3. Minimal features (Product Title only)")
+    print("    1. Product Title + Merchant ID")
+    print("    2. Product Title only")
     feature_input = input("  Select option (or press Enter for 1): ").strip()
     feature_choice = 1 if feature_input == "" else int(feature_input)
     print(f"  -> Selected: Option {feature_choice}")
@@ -75,48 +82,60 @@ def load_and_prepare_data(feature_choice):
     
     print(f"\nData Verification:")
     print(f"  - Missing values: {df.isnull().sum().sum()} total")
-    print(f"  - Columns: {list(df.columns)}")
     
-    # Select features based on user choice
-    if feature_choice == 1:
-        features = ['Product Title', ' Merchant ID', ' Cluster ID']
-    elif feature_choice == 2:
-        features = ['Product Title', ' Cluster ID']
-    else:  # feature_choice == 3
-        features = ['Product Title']
+    # Extract features and target
+    product_titles = df['Product Title'].astype(str)
+    merchant_ids = df[' Merchant ID']
+    y = df[' Category Label']
     
-    X = df[features].copy()
-    y = df[' Category Label'].copy()
-    
-    # Encode categorical features
-    le_dict = {}
-    for col in X.columns:
-        le = LabelEncoder()
-        X[col] = le.fit_transform(X[col].astype(str))
-        le_dict[col] = le
-    
-    print(f"[OK] Categorical features encoded")
-    print(f"[OK] Using {len(features)} feature(s): {', '.join(features)}")
+    print(f"\n[OK] Data extracted:")
+    print(f"  - Product titles: {len(product_titles)} samples")
+    print(f"  - Merchant IDs: {len(merchant_ids)} unique values")
+    print(f"  - Categories: {len(y.unique())} classes")
     
     # Encode target variable
     le_target = LabelEncoder()
-    y = le_target.fit_transform(y)
+    y_encoded = le_target.fit_transform(y)
     
-    return X, y, features
+    # Vectorize Product Title using CountVectorizer
+    print(f"\n[OK] Vectorizing Product Title text...")
+    vectorizer = CountVectorizer(max_features=100, lowercase=True, stop_words='english')
+    X_title = vectorizer.fit_transform(product_titles)
+    print(f"  - Generated {X_title.shape[1]} text features (word counts)")
+    
+    # Encode Merchant ID
+    le_merchant = LabelEncoder()
+    X_merchant = le_merchant.fit_transform(merchant_ids).reshape(-1, 1)
+    print(f"  - Merchant ID encoded: {X_merchant.shape[1]} feature")
+    
+    # Combine features based on choice
+    if feature_choice == 1:
+        # Combine Product Title + Merchant ID
+        from scipy.sparse import hstack
+        X = hstack([X_title, X_merchant])
+        features_used = "Product Title + Merchant ID"
+    else:
+        # Product Title only
+        X = X_title
+        features_used = "Product Title"
+    
+    print(f"\n[OK] Using {feature_choice} feature(s): {features_used}")
+    print(f"  - Total features: {X.shape[1]}")
+    
+    return X, y_encoded, features_used, le_target
 
 
-def display_data_summary(X, y, features):
+def display_data_summary(X, y, features_used):
     """Display summary statistics"""
     print("\n" + "="*70)
     print("DATA SUMMARY")
     print("="*70)
     
-    print(f"\nFeatures used ({len(features)}):")
-    for i, feat in enumerate(features, 1):
-        print(f"  {i}. {feat}")
+    print(f"\nFeatures used: {features_used}")
+    print(f"Total features: {X.shape[1]}")
+    print(f"Total samples: {X.shape[0]}")
     
     print(f"\nTarget variable: Category Label (10 classes)")
-    print(f"Total samples: {len(X)}")
     
     print(f"\nClass distribution:")
     unique, counts = np.unique(y, return_counts=True)
@@ -137,17 +156,16 @@ def train_and_evaluate(X, y, train_size, cv_folds, alpha):
     )
     
     print(f"\nTrain-Test Split ({train_size}%/{100-train_size}%):")
-    print(f"  - Training samples: {len(X_train)}")
-    print(f"  - Test samples: {len(X_test)}")
+    print(f"  - Training samples: {X_train.shape[0]}")
+    print(f"  - Test samples: {X_test.shape[0]}")
     
     # Model configuration
     print(f"\nModel Configuration:")
-    print(f"  - Type: Categorical Naive Bayes")
+    print(f"  - Type: Multinomial Naive Bayes (for text/count data)")
     print(f"  - Alpha (smoothing): {alpha}")
-    print(f"  - Assumption: Features are conditionally independent given class")
     
     # Train model
-    model = CategoricalNB(alpha=alpha)
+    model = MultinomialNB(alpha=alpha)
     model.fit(X_train, y_train)
     print(f"[OK] Model trained successfully")
     
@@ -266,10 +284,10 @@ def main():
         train_size, cv_folds, alpha, feature_choice = get_user_input()
         
         # Load and prepare data
-        X, y, features = load_and_prepare_data(feature_choice)
+        X, y, features_used, le_target = load_and_prepare_data(feature_choice)
         
         # Display summary
-        display_data_summary(X, y, features)
+        display_data_summary(X, y, features_used)
         
         # Train and evaluate
         model, y_test, y_pred, test_accuracy, cv_scores = train_and_evaluate(
