@@ -1,3 +1,7 @@
+# ============================================================
+# ID3 DECISION TREE CLASSIFIER - PRICERUNNER AGGREGATE for Final Presentation 
+# ============================================================
+
 import pandas as pd
 from sklearn import tree
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -12,58 +16,98 @@ def get_user_input():
     print("=" * 70)
     
     # Training/Test split
+    print("\n[TRAINING/TEST SPLIT]")
+    print("  Suggested: 80% (standard practice)")
+    print("  Range: 1-99 (must be between 0 and 100)")
     while True:
         try:
-            train_size = float(input("\nEnter training set percentage (0-100, default 80): ") or "80")
+            user_input = input("  Enter training set percentage (or press Enter for 80): ").strip()
+            if user_input == "":
+                train_size = 80
+            else:
+                train_size = float(user_input)
             if 0 < train_size < 100:
                 test_size = (100 - train_size) / 100
                 train_size = train_size / 100
+                print(f"  -> Selected: {train_size*100:.0f}% training, {test_size*100:.0f}% testing")
                 break
             else:
-                print("Please enter a value between 0 and 100")
+                print("  ERROR: Please enter a value between 0 and 100")
         except ValueError:
-            print("Invalid input. Please enter a number.")
+            print("  ERROR: Please enter a valid number")
     
     # Max depth
+    print("\n[MAX TREE DEPTH]")
+    print("  Suggested: 5 (industry standard, good generalization)")
+    print("  Range: 1-20 (higher = more complex tree)")
     while True:
         try:
-            max_depth = int(input("Enter max_depth for decision tree (1-20, default 5): ") or "5")
+            user_input = input("  Enter max_depth (or press Enter for 5): ").strip()
+            if user_input == "":
+                max_depth = 5
+            else:
+                max_depth = int(user_input)
             if 1 <= max_depth <= 20:
+                print(f"  -> Selected: depth {max_depth}")
                 break
             else:
-                print("Please enter a value between 1 and 20")
+                print("  ERROR: Please enter a value between 1 and 20")
         except ValueError:
-            print("Invalid input. Please enter an integer.")
+            print("  ERROR: Please enter a valid integer")
     
     # Cross-validation folds
+    print("\n[CROSS-VALIDATION FOLDS]")
+    print("  Suggested: 5 (standard k-fold)")
+    print("  Range: 2-10 (more folds = more robust)")
     while True:
         try:
-            cv_folds = int(input("Enter number of cross-validation folds (2-10, default 5): ") or "5")
+            user_input = input("  Enter number of CV folds (or press Enter for 5): ").strip()
+            if user_input == "":
+                cv_folds = 5
+            else:
+                cv_folds = int(user_input)
             if 2 <= cv_folds <= 10:
+                print(f"  -> Selected: {cv_folds}-fold cross-validation")
                 break
             else:
-                print("Please enter a value between 2 and 10")
+                print("  ERROR: Please enter a value between 2 and 10")
         except ValueError:
-            print("Invalid input. Please enter an integer.")
+            print("  ERROR: Please enter a valid integer")
     
     # Min samples split
+    print("\n[MIN SAMPLES SPLIT]")
+    print("  Suggested: 2 (allows fine-grained splitting)")
+    print("  Range: 1-20 (higher = simpler tree, less overfitting)")
     while True:
         try:
-            min_samples = int(input("Enter min_samples_split (1-20, default 2): ") or "2")
+            user_input = input("  Enter min_samples_split (or press Enter for 2): ").strip()
+            if user_input == "":
+                min_samples = 2
+            else:
+                min_samples = int(user_input)
             if 1 <= min_samples <= 20:
+                print(f"  -> Selected: {min_samples}")
                 break
             else:
-                print("Please enter a value between 1 and 20")
+                print("  ERROR: Please enter a value between 1 and 20")
         except ValueError:
-            print("Invalid input. Please enter an integer.")
+            print("  ERROR: Please enter a valid integer")
     
     # Feature selection
-    print("\nFeature Selection:")
-    print("1. All features (Product Title, Merchant ID, Cluster ID)")
-    print("2. Core features only (Product Title, Cluster ID)")
-    print("3. Custom selection")
+    print("\n[FEATURE SELECTION]")
+    print("  Suggested: Option 1 (all features)")
+    print("  Available options:")
+    print("    1. All features (Product Title, Merchant ID, Cluster ID)")
+    print("    2. Core features only (Product Title, Cluster ID)")
+    print("    3. Custom selection")
     
-    feature_choice = input("Select feature set (1-3, default 1): ") or "1"
+    feature_choice = input("  Select option (or press Enter for 1): ").strip() or "1"
+    if feature_choice == "1":
+        print("  -> Selected: All 3 features")
+    elif feature_choice == "2":
+        print("  -> Selected: Core features (2)")
+    else:
+        print("  -> Selected: Default features")
     
     return {
         'train_size': train_size,
