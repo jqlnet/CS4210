@@ -305,23 +305,41 @@ def main():
     print("  Classification Analysis and Evaluation Tool".center(70))
     print("=" * 70)
     
-    # Get user configuration
-    config = get_user_input()
-    
-    # Load and prepare data
-    X, y, features, target, df = load_and_prepare_data(config)
-    
-    # Display data summary
-    display_data_summary(X, y, features)
-    
-    # Train and evaluate
-    clf, X_train, X_test, y_train, y_test, y_pred, test_accuracy, cv_scores = train_and_evaluate(X, y, config)
-    
-    # Display detailed results
-    display_detailed_results(y_test, y_pred, test_accuracy)
-    
-    # Display summary
-    display_summary(config, test_accuracy, cv_scores)
+    run_again = True
+    while run_again:
+        # Get user configuration
+        config = get_user_input()
+        
+        # Load and prepare data
+        X, y, features, target, df = load_and_prepare_data(config)
+        
+        # Display data summary
+        display_data_summary(X, y, features)
+        
+        # Train and evaluate
+        clf, X_train, X_test, y_train, y_test, y_pred, test_accuracy, cv_scores = train_and_evaluate(X, y, config)
+        
+        # Display detailed results
+        display_detailed_results(y_test, y_pred, test_accuracy)
+        
+        # Display summary
+        display_summary(config, test_accuracy, cv_scores)
+        
+        # Ask if user wants to run again with different parameters
+        print("\n" + "=" * 70)
+        while True:
+            response = input("Would you like to run with different parameters? (yes/no): ").strip().lower()
+            if response in ['yes', 'y']:
+                run_again = True
+                print("\n" + "-" * 70 + "\n")
+                break
+            elif response in ['no', 'n']:
+                run_again = False
+                print("\n[OK] Analysis complete.")
+                print("=" * 70 + "\n")
+                break
+            else:
+                print("Please enter 'yes' or 'no'")
 
 if __name__ == "__main__":
     main()
