@@ -262,12 +262,25 @@ def display_detailed_results(y_test, y_pred, test_accuracy):
     
     print(f"\nOverall Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
     
+    print(f"\n[METRIC EXPLANATIONS]")
+    print(f"  Precision: Of predictions I made for class X, how many were correct?")
+    print(f"  Recall: Of actual class X samples, how many did I correctly identify?")
+    print(f"  F1-Score: Harmonic mean of precision and recall (balanced metric)")
+    print(f"  Support: Number of actual samples for each class in test set")
+    
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred, digits=4))
     
     print("\nConfusion Matrix:")
     cm = confusion_matrix(y_test, y_pred)
     print(cm)
+    
+    print(f"\n[INTERPRETATION GUIDE]")
+    print(f"  High Precision (>0.90): Avoid false positives (accurate when predicting)")
+    print(f"  High Recall (>0.90): Avoid false negatives (catches most actual samples)")
+    print(f"  High F1-Score (>0.90): Good balance between precision and recall")
+    print(f"  Confusion Matrix diagonal: Correct predictions")
+    print(f"  Confusion Matrix off-diagonal: Misclassifications")
 
 def display_summary(config, test_accuracy, cv_scores):
     """Display final summary"""
@@ -287,7 +300,7 @@ def display_summary(config, test_accuracy, cv_scores):
     print(f"  - CV std deviation: {cv_scores.std():.4f}")
     
     if abs(test_accuracy - cv_scores.mean()) < 0.1:
-        print(f"\n[OK] Model shows good generalization (test ≈ CV)")
+        print(f"\n[OK] Model shows good generalization (test ~= CV)")
     else:
         print(f"\n[WARNING] Model may be overfitting (test >> CV)")
     
