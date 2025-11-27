@@ -263,6 +263,66 @@ def train_and_evaluate(X, y, config):
     plt.close()
     print("  [OK] confusion_matrix_id3.png saved")
     
+    # Cross-validation scores visualization
+    plt.figure(figsize=(10, 6))
+    folds = list(range(1, len(cv_scores) + 1))
+    plt.plot(folds, cv_scores, marker='o', linewidth=2, markersize=8, label='Fold Accuracy', color='steelblue')
+    plt.axhline(y=cv_scores.mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {cv_scores.mean():.4f}')
+    plt.fill_between(folds, cv_scores.mean() - cv_scores.std(), cv_scores.mean() + cv_scores.std(), 
+                     alpha=0.2, color='red', label=f'±1 Std Dev: {cv_scores.std():.4f}')
+    plt.xlabel('Fold Number', fontsize=12, fontweight='bold')
+    plt.ylabel('Accuracy', fontsize=12, fontweight='bold')
+    plt.title('ID3 Decision Tree - Cross-Validation Scores (5-Fold)', fontsize=14, fontweight='bold')
+    plt.xticks(folds)
+    plt.ylim([0, 1])
+    plt.grid(True, alpha=0.3)
+    plt.legend(fontsize=10)
+    plt.tight_layout()
+    plt.savefig('id3_cv_scores.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print("  [OK] id3_cv_scores.png saved")
+    
+    # Classification report visualization
+    from sklearn.metrics import precision_recall_fscore_support
+    
+    # Get metrics for all classes
+    precision, recall, f1, support = precision_recall_fscore_support(y_test, y_pred, average=None)
+    
+    # Create visualization
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Prepare data
+    x = np.arange(len(precision))
+    width = 0.25
+    
+    # Plot bars
+    bars1 = ax.bar(x - width, precision, width, label='Precision', color='steelblue', alpha=0.8)
+    bars2 = ax.bar(x, recall, width, label='Recall', color='orange', alpha=0.8)
+    bars3 = ax.bar(x + width, f1, width, label='F1-Score', color='green', alpha=0.8)
+    
+    # Labels and formatting
+    ax.set_xlabel('Class', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Score', fontsize=12, fontweight='bold')
+    ax.set_title('ID3 Decision Tree - Classification Report by Class', fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(range(10))
+    ax.set_ylim([0, 1.1])
+    ax.legend(fontsize=11)
+    ax.grid(True, alpha=0.3, axis='y')
+    
+    # Add value labels on bars
+    for bars in [bars1, bars2, bars3]:
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                       f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig('id3_classification_report.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print("  [OK] id3_classification_report.png saved")
+    
     return clf, X_train, X_test, y_train, y_test, y_pred, test_accuracy, cv_scores
 
 def display_detailed_results(y_test, y_pred, test_accuracy):
@@ -317,8 +377,9 @@ def display_summary(config, test_accuracy, cv_scores):
     
     print("\n" + "=" * 70)
     print("Output files saved:")
-    print("  - decision_tree_plot.png")
-    print("  - confusion_matrix_plot.png")
+    print("  - confusion_matrix_id3.png (predictions vs actual)")
+    print("  - id3_cv_scores.png (cross-validation performance)")
+    print("  - id3_classification_report.png (precision/recall/f1 by class)")
     print("=" * 70 + "\n")
 
 def main():

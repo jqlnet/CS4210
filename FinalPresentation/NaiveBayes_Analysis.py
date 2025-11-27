@@ -213,6 +213,47 @@ def train_and_evaluate(X, y, train_size, cv_folds, alpha):
     plt.close()
     print(f"  [OK] naivebayes_cv_scores.png saved")
     
+    # Classification report visualization
+    from sklearn.metrics import precision_recall_fscore_support
+    
+    # Get metrics for all classes
+    precision, recall, f1, support = precision_recall_fscore_support(y_test, y_pred, average=None)
+    
+    # Create visualization
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Prepare data
+    x = np.arange(len(precision))
+    width = 0.25
+    
+    # Plot bars
+    bars1 = ax.bar(x - width, precision, width, label='Precision', color='steelblue', alpha=0.8)
+    bars2 = ax.bar(x, recall, width, label='Recall', color='orange', alpha=0.8)
+    bars3 = ax.bar(x + width, f1, width, label='F1-Score', color='green', alpha=0.8)
+    
+    # Labels and formatting
+    ax.set_xlabel('Class', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Score', fontsize=12, fontweight='bold')
+    ax.set_title('Naive Bayes - Classification Report by Class', fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(range(10))
+    ax.set_ylim([0, 1.1])
+    ax.legend(fontsize=11)
+    ax.grid(True, alpha=0.3, axis='y')
+    
+    # Add value labels on bars
+    for bars in [bars1, bars2, bars3]:
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                       f'{height:.2f}', ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig('naivebayes_classification_report.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"  [OK] naivebayes_classification_report.png saved (updated)")
+    
     return model, y_test, y_pred, test_accuracy, cv_scores
 
 
