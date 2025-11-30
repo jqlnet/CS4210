@@ -8,5 +8,5 @@
 # for the CNN, 3) construct a CNN architecture following the guidelines in the code, 4) train the model
 # on the training set and validate on the test set, 5) evaluate the final model and 6) print the test accuracy.
 # FOR: CS 4210- Assignment #4
-# TIME SPENT: 3h35m
+# TIME SPENT:
 #-----------------------------------------------------------*/
